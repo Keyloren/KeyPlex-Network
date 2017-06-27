@@ -663,21 +663,6 @@ every 2 seconds:
 				set score "&c&lWebsite" in sidebar of loop-player to 3
 				set score "&f%{mineplex.config.website}%" in sidebar of loop-player to 2
 				set score "&f----------------" in sidebar of loop-player to 1
-			else if loop-player's world is "KitPvP-1":
-				wipe loop-player's sidebar
-				set name of sidebar of loop-player to "&f&lKeyPlex Network"
-				set score "&7  " in sidebar of loop-player to 12
-				set score "&e&lPayers" in sidebar of loop-player to 11
-				set score "&f%amount of players%/60" in sidebar of loop-player to 10
-				set score "&a  " in sidebar of loop-player to 9
-				set score "&7&lKit" in sidebar of loop-player to 8
-				set score "&f%{kit.using.%loop-player%}%" in sidebar of loop-player to 7
-				set score "&e  " in sidebar of loop-player to 6
-				set score "&e&lShards" in sidebar of loop-player to 5
-				set score "&r%{mineplex.shards.%loop-player%}%" in sidebar of loop-player to 4
-				set score "&6  " in sidebar of loop-player to 3
-				set score "&b&lServer" in sidebar of loop-player to 2
-				set score "&f%loop-player's world%" in sidebar of loop-player to 1
 			else:
 				wipe loop-player's sidebar
 				set name of sidebar of loop-player to "&f&lKeyPlex Network"
@@ -1155,21 +1140,21 @@ command /kitgui [<text>]:
 		if arg 1 is "Knight" or "Archer" or "Medic" or "Ninja":
 			if arg 1 is "Knight":
 				set {kit.gui.playersee.%player%} to "&7Fight with the most expensive||&7kit right now!"
-				set {choose.kit} to "diamond sword"
+				set {choose.kit} to "diamond sword" parsed as an item
 			else if arg 1 is "Archer":
 				set {kit.gui.playersee.%player%} to "&7Fight with the most accurately||&7existent Kit!"
-				set {choose.kit} to "diamond sword"
+				set {choose.kit} to "bow" parsed as an item
 			else if arg 1 is "Medic":
 				set {kit.gui.playersee.%player%} to "&7Heal your team-mates with your||&7potions, or poisons them!"
-				set {choose.kit} to "diamond sword"
+				set {choose.kit} to "Water Bottle" parsed as an item
 			else if arg 1 is "Ninja":
 				set {kit.gui.playersee.%player%} to "&7Be a ninja among the enemies,||&7and surprise them at the right time!"
-				set {choose.kit.%player%} to "diamond sword"
+				set {choose.kit} to "Iron Sword" parsed as an item
 			wait 2 ticks
 			open chest with 6 rows named "%arg-1%" to player
 			wait 2 ticks
-			format slot 13 of player with shiny diamond sword named "&e%arg-1%" with lore " ||&f%{kit.gui.playersee.%player%}%" to be unstealable
-			format slot 1 of player with Blue Stained Glass Pane named "&eDefault Kit" with lore " ||&fSelects this kit as your default kit||&funtil you decide to change it.|| ||&fDefault kits will be auto-selected ||&fwhen you join a lobby. ||" to close then run [send "&9Kit> &7Set &e&l%arg-1% &7as your default kit."]
+			format slot 13 of player with {choose.kit} named "&e%arg-1%" with lore " ||&f%{kit.gui.playersee.%player%}%" to be unstealable
+			format slot 1 of player with Blue Stained Glass Pane named "&eDefault Kit" with lore " ||&fSelects this kit as your default kit||&funtil you decide to change it.|| ||&fDefault kits will be auto-selected ||&fwhen you join a lobby. ||" to close then run [send "&9Kit> &7Set &e&l%arg-1% &7as your default kit."]->[execute player command "/makedefaultkit %arg-1%"]
 			format slot 0 of player with Blue Stained Glass Pane named "&eDefault Kit" with lore " || ||&fSelects this kit as your default kit||&funtil you decide to change it.|| ||&fDefault kits will be auto-selected ||&fwhen you join a lobby. ||" to close then run [send "&9Kit> &7Set &e&l%arg-1% &7as your default kit."]
 			format slot 9 of player with Blue Stained Glass Pane named "&eDefault Kit" with lore " || ||&fSelects this kit as your default kit||&funtil you decide to change it.|| ||&fDefault kits will be auto-selected ||&fwhen you join a lobby. ||" to close then run [send "&9Kit> &7Set &e&l%arg-1% &7as your default kit."]		
 			format slot 10 of player with Blue Stained Glass Pane named "&eDefault Kit" with lore " || ||&fSelects this kit as your default kit||&funtil you decide to change it.|| ||&fDefault kits will be auto-selected ||&fwhen you join a lobby. ||" to close then run [send "&9Kit> &7Set &e&l%arg-1% &7as your default kit."]
@@ -1364,6 +1349,5 @@ command /remkit:
 		send "ok"
 		
 		
-					
 		
 			

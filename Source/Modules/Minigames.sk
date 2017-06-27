@@ -1,0 +1,251 @@
+options:
+	module:Minigames
+	modulever: 1.0
+
+script options:
+	$ use permissions
+
+on damage of a player:
+	if attacker is a player:
+		if projectile is set:
+			cancel event
+			give attacker a arrow
+			broadcast "&9Death> &c%victim% &7killed by &a%attacker%&7 with &eArchery&7."
+			set {spawn.oitq.location} to a random integer from 1 to 5
+			if {spawn.oitq.location} is 1:
+				teleport victim to {spawn.map.oitq.1}
+			if {spawn.oitq.location} is 2:
+				teleport victim to {spawn.map.oitq.2}
+			if {spawn.oitq.location} is 3:
+				teleport victim to {spawn.map.oitq.3}
+			if {spawn.oitq.location} is 4:
+				teleport victim to {spawn.map.oitq.4}
+			if {spawn.oitq.location} is 5:
+				teleport victim to {spawn.map.oitq.5}
+
+on damage:
+	if attacker is a player:
+		if health of victim is less than or equal to 4:
+			teleport victim to {spawn.map.oitq.5}
+			heal victim
+			if name of attacker's tool is "&fWooden Sword":
+				broadcast "&9Death> &c%victim% &7killed by &a%attacker%&7 with &eSomething&7."
+	
+	
+	
+on shoot:
+    trail projectile with particle drip lava
+	
+on damage:
+	if {disable.pvp.10sec} is not set:
+		set {disable.pvp.10sec} to 0
+	if {disable.pvp.10sec} is 1:
+		cancel event
+		
+on jump:
+	if player's world is "oitq-1":
+		if {freeze.%player%.value} is 1:
+			cancel event
+				
+#every 5 seconds:
+#	loop all players:
+#		if loop-player's world is "OITQ-1":
+#			if {kit.equiped.oitq.%loop-player%} is "jumper":
+#				if {%number of arrows in the loop-player's inventory%} is more than 5:
+#					give loop-player a arrow
+				
+command /game [<text>] [<text>]:
+	permission: mineplex.admin
+	permission message: &9Permissions> &7This requires Permission Rank [&9ADMIN7].	
+	trigger:
+		if arg 1 is not set:
+			message "&9Game Manager> &7Commands List:"
+			message "&6/game start &7Start the current game &6Admin"
+			message "&6/game stop &7Stop the current game &6Admin"
+			message "&6/game set <GameType> <MapSource> (Map) &7Set the current game or next game &6Admin"
+			message "&9Tip> &7Use TAB for games/maps!"
+		if arg 1 is "start":
+			if {game.stats} is not set:
+				set {game.stats} to 0
+			if {game.stats} is 1:
+				send "&f&lA game is already in progress!"
+			else:
+				if {minigame.set.game} is set:
+					if {minigame.set.game} is "oitq":
+						set {game.define.game} to "OITQ"
+						loop all players:
+							if loop-player's world is "MIN-1":
+								execute console command "/mvtp loop-player MIN-1"
+								set {game.stats} to 1
+								message "&b&l%player% Started the Game!" to loop-player
+								set {freeze.%loop-player%.value} to 1
+								set loop-players's walk speed to 0
+								execute player command "/kitmin oitq jumper"
+								#Teleportare random in 5 parti diferite.
+								set {spawn.oitq.location} to a random integer from 1 to 5
+								teleport loop-player to {spawn.oitq.location}
+								if {spawn.oitq.location} is 1:
+									teleport loop-player to {spawn.map.oitq.1}
+								if {spawn.oitq.location} is 2:
+									teleport loop-player to {spawn.map.oitq.2}
+								if {spawn.oitq.location} is 3:
+									teleport loop-player to {spawn.map.oitq.3}
+								if {spawn.oitq.location} is 4:
+									teleport loop-player to {spawn.map.oitq.4}
+								if {spawn.oitq.location} is 5:
+									teleport loop-player to {spawn.map.oitq.5}
+								#Dupa teleportare, se alege si selecteaza automat kit-ul ales de jucator in MIN-1 (Min Hub)
+								if {kit.equiped.oitq.%loop-player%} is not set:
+									set {kit.equiped.oitq.%loop-player%} to "jumper"
+								if {kit.equiped.oitq.%loop-player%} is "jumper":
+									send "&9Kit> &7You equipped &e&lJumper Kit" to loop-player
+									give loop-player a bow
+									give loop-player a arrow
+						#ingame part
+						#Se sterg efectele de Stun si anti-pvp, iar jocul incepe.
+						loop all players:
+							wait 5 seconds
+							set {freeze.%loop-player%.value} to 0
+							set loop-players's walk speed to 0.25
+							message "&a&lGame Starts!" to loop-player
+								
+								
+								
+					else if {minigame.set.game} is "micro":
+						send "&c&lThis game is not already finished!"
+					
+					
+					
+
+				else:
+					send "&9Game> &cPlease select a game!"
+	
+		else:
+			if arg 1 is "set":
+				if arg 2 is set:
+					if arg 2 is "oitq" or "one":
+						set {minigame.set.game} to "oitq"
+						broadcast "&b&l%player% has changed game to One in the Quiver."
+						loop all players:
+							if loop-player's world is "MIN-1":
+								teleport loop-player to {spawn.main.arcade}
+					else if arg 2 is "micro" or "mb":
+						set {minigame.set.game} to "micro"
+						broadcast "&b&l%player% has changed game to Micro Battles."
+						loop all players:
+							if loop-player's world is "MIN-1":
+								teleport loop-player to {spawn.main.arcade}
+				else:
+					send "&9Game> &7Pleace specify a game!"
+	
+			else if arg 1 is "stop":
+				set {game.stats} to 0
+				broadcast "&b&l%player% stopped the game."
+				loop all players:
+					set {freeze.%loop-player%.value} to 0
+					set players's walk speed to 0.25
+					execute console command "/mvtp %loop-player% MIN-1"
+					heal loop-player
+					clear loop-player's inventory
+					wait 5 ticks
+					teleport loop-player to {spawn.main.arcade}
+					set {_p} to loop-player
+					message "&6&m=====================================" to {_p}
+					message "&f&lGame Stats" to {_p}
+					message "&b &f" to {_p}
+					message "&e1st Place" to {_p}
+					message "&eParticipation" to {_p}
+					message "&b &f" to {_p}
+					message "&6&m=====================================" to {_p}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+#arg1 e numele minigame-ului
+#arg2 e numele kit-ului
+command /kitmin [<text>] [<text>]:
+	trigger:
+		if player's world is "MIN-1":
+			if arg 1 is "oitq":
+				if arg 2 is "jumper":
+					set {kit.equiped.oitq.%player%} to "jumper"
+
+			
+			
+	
+	
+	
+	
+	
+command /setspawnoitq [<string>]:
+	permission: mineplex.admin
+	permission message: &9Permissions> &7This requires Permission Rank [&9ADMIN7].	
+	trigger:
+		if arg 1 is set:
+			set {spawn.map.oitq.%arg-1%} to player's location
+			send "&9OITQ> &7Spawn Set!"
+		
+command /setlobbyspawn:
+	permission: mineplex.admin
+	permission message: &9Permissions> &7This requires Permission Rank [&9ADMIN7].	
+	trigger:
+		set {spawn.main.arcade} to player's location
+		send "&9Arcade> &7Spawn Set!"
+	
+#Arg-1 = Name of kit
+#Arg-2 = Minigame Name
+
+command /npckit [<text>] [<text>]:
+	trigger:	
+		if arg 1 is "Brawler":
+			set {choose.kit.define.%player%} to "||&7Missed your arrow? Not a big deal.|| ||&fDeal &a+1 &fmore damage|| ||"
+			set {choose.kit.item} to "Iron Sword" parsed as an item
+			set {choose.kit.player.ingame.recive-items.%player%} to "brawler"
+		else if arg 1 is "Jumper":
+			set {choose.kit.define.%player%} to "||&7Evade and kill using your double jump.|| ||&f&eDouble tap &fyour key to &aDouble Jump|| ||"
+			set {choose.kit.item} to "Iron Sword" parsed as an item
+			set {choose.kit.player.ingame.recive-items.%player%} to "jumper"
+		wait 2 ticks
+		open chest with 6 rows named "%arg-1%" to player
+		wait 2 ticks
+		format slot 13 of player with shiny {choose.kit.item} named "&e%arg-1%" with lore " ||&f%{kit.gui.playersee.%player%}%" to be unstealable
+		format slot 1 of player with Blue Stained Glass Pane named "&eDefault Kit" with lore " ||&fSelects this kit as your default kit||&funtil you decide to change it.|| ||&fDefault kits will be auto-selected ||&fwhen you join a lobby. ||" to close then run [send "&9Kit> &7Set &e&l%arg-1% &7as your default kit."]
+		format slot 0 of player with Blue Stained Glass Pane named "&eDefault Kit" with lore " || ||&fSelects this kit as your default kit||&funtil you decide to change it.|| ||&fDefault kits will be auto-selected ||&fwhen you join a lobby. ||" to close then run [send "&9Kit> &7Set &e&l%arg-1% &7as your default kit."]
+		format slot 9 of player with Blue Stained Glass Pane named "&eDefault Kit" with lore " || ||&fSelects this kit as your default kit||&funtil you decide to change it.|| ||&fDefault kits will be auto-selected ||&fwhen you join a lobby. ||" to close then run [send "&9Kit> &7Set &e&l%arg-1% &7as your default kit."]	
+		format slot 10 of player with Blue Stained Glass Pane named "&eDefault Kit" with lore " || ||&fSelects this kit as your default kit||&funtil you decide to change it.|| ||&fDefault kits will be auto-selected ||&fwhen you join a lobby. ||" to close then run [send "&9Kit> &7Set &e&l%arg-1% &7as your default kit."]
+		format slot 7 of player with Green Stained Glass Pane named "&e%arg-1%" with lore " ||&fClick to select this kit||" to close then run [execute player command "kitequip %arg-1% %arg-2%"] #kitequip Brawler oitq
+		format slot 8 of player with Green Stained Glass Pane named "&e%arg-1%" with lore " ||&fClick to select this kit||" to close then run [execute player command "kitequip %arg-1% %arg-2%"]
+		format slot 17 of player with Green Stained Glass Pane named "&e%arg-1%" with lore " ||&fClick to select this kit||" to close then run [execute player command "kitequip %arg-1% %arg-2%"]
+		format slot 16 of player with Green Stained Glass Pane named "&e%arg-1%" with lore " ||&fClick to select this kit||" to close then run [execute player command "kitequip %arg-1% %arg-2%"]
+		format slot 27 of player with Gray Dye named "&cComing Soon" with lore "&7Upgrades coming soon!" to be unstealable
+		format slot 29 of player with Gray Dye named "&cComing Soon" with lore "&7Upgrades coming soon!" to be unstealable
+		format slot 31 of player with Gray Dye named "&cComing Soon" with lore "&7Upgrades coming soon!" to be unstealable
+		format slot 33 of player with Gray Dye named "&cComing Soon" with lore "&7Upgrades coming soon!" to be unstealable
+		format slot 35 of player with Gray Dye named "&cComing Soon" with lore "&7Upgrades coming soon!" to be unstealable
+		format slot 48 of player with 384 named "&eXP and Level" with lore "&f ||&fLevel: &a1 out of 100 &7(99) ||&fXP: &a1 out of 50 &7(49) ||&f ||&fClick to view Upgrade and XP tracking" to be unstealable
+		format slot 50 of player with Enchantment Table named "&eUpgrade Level" with lore " ||&cUpgrades Coming Soon!" to be unstealable
+
+	
+	
+	
