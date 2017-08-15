@@ -337,15 +337,25 @@ command /sethome [<text>]:
 				set {home.%player%.default} to player's position
 
 			
-command /home [<text>]:
+command /home [<text>] [<offline player>]:
 	trigger:
 		if player has permission "mineplex.ultra":
 			if arg 1 is set:
-				if {home.%player%.%arg-1%} is set:
-					teleport player to {home.%player%.%arg-1%}
-					send "&9Home> &7Teleporting you to home [&e%arg-1%&7]."
+				if arg 2 is not set:
+					if {home.%player%.%arg-1%} is set:
+						teleport player to {home.%player%.%arg-1%}
+						send "&9Home> &7Teleporting you to home [&e%arg-1%&7]."
+					else:
+						send "&9Home> &cThat home does not exists."
 				else:
-					send "&9Home> &cThat home does not exists."
+					if arg 1 is "invite":
+						if arg 2 is online:
+							send "&9Invite> &7You has invited &e%arg-2% &7to your house!" to player
+							send "&9Invite> &e%player% &7has invited you to his house!" to arg 2
+							set {invited.home.%arg-2%.to.%player%} to true
+					if arg 1 is "accept":
+						if {invited.home.%player%.to.%arg-2%} is true:
+							set 
 			else:
 				send "&9Home> &7Correct Ussage:"
 				send "&9Home> &e/home <Home Name>"
@@ -622,8 +632,63 @@ command /fly:
 					wait 10 seconds
 					set {antifall.%player%} to false
 
-				
-				
+
+#fa home <player> ca playerii sa-si dea tp la casa cuiva
+#fa /amplify 
+					
+command /amplify [<offline player>] [<text>]:
+	executable by: players
+	trigger:
+		if arg 1 is not set:
+			if {amplify.game} is not set:
+				set {amplify.game} to false
+			else:
+				if {amplify.game} is true:
+					send "&9Amplifier> &7An amplifier is already on use."
+					stop
+				if {amplify.game} is false:
+					if {amplifiers.number.player.%player%} is > 0:
+						set {amplify.game} to true
+						broadcast "&9Amplifier> &e%player% &7amplified the game! Click &ahere &7to thank."
+					else:
+						send "&9Amplifier> &cYou don't own any Amplifiers."
+		else:
+			if player has permission "mineplex.admin":
+				if arg 1 is set:
+					if arg 2 is set:
+						if arg 1 is online:
+							set {amplifiers.number.player.%arg-1%} to arg 2
+							send "&9Amplifier> &7You gave &a%arg-2% &7Game Amplifiers to &e%arg-1%&7." to player
+							send "&9Amplifier> &7You have recived %arg-2% &7Game Amplifiers from %player%" to arg 1
+						else:
+							send "&9Online Player Search> &e0 &7matches for [&e%arg-1%&7]."
+					else:
+						send "&9Amplifier> &7Missing Args: &e/amplify <player> <amount>"
+				else:
+					send "&9Amplifier> &7Missing Args: &e/amplify <player> <amount>"
+			else:
+				send "&9Permissions> &7This requires Permission Rank [&9ADMIN&7]."
+									
+							
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		
