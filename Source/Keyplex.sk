@@ -1,0 +1,1578 @@
+options:
+	module: SourceCode
+	modulever: 2.0
+on load:
+	broadcast "&9Server Status> &7Loading Server SourceCode Ver: &e{@modulever}&7."
+on connect:
+	player doesn't have permission "mineplex.ultra"
+	number of players is larger than 20
+	kick the player due to "&7The last 5 slots are reserved for &bULTRA+ &7players."
+	#IN-GAME-COMMANDS
+command /sudo [<string>] [<string>]:
+	permission: mineplex.admin
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if player has permission "mineplex.admin":
+			if arg 1 is not set:
+				send "/sudo <player/all> <command>"
+			else:
+				set {_p} to arg-1 parsed as offline player
+				if arg 1 is "all":
+					send "&9Sudo> &7Done!"
+					loop all players:
+						loop-player is not player:
+							loop-player command "%arg-2%"
+							send "&9Sudo> &7Sudo'ed for &e%arg-2%" to loop-player
+				else:
+					if {_p} is online:
+						send "&9Sudo> &7Done!"
+						{_p} command "%arg-2%"
+						send "&9Sudo> &7Sudo'ed for &e%arg-2%" to {_p}
+					else:
+						send "&9Online Player Search> &e0 &7matches for [&e%arg-1%&7]."
+						send "&9Online Player(s) Search> &7Invalid [&e%arg-1%&7]."
+		else:
+			send "&9Permissions> &7You do not have permission to do that."
+command /kill [<offline player>]:
+	trigger:
+		if arg 1 is not set:
+			message "&9Game> &7Suicide is disabled."
+		else:
+			if player has permission "mineplex.admin":
+				if arg 1 is online:
+					set the gamemode of argument 1 to survival
+					kill argument 1
+					message "&9Kill> &7Killed &e%arg-1%"
+				else:
+					send "&9Online Player Search> &e0 &7matches for [&e%arg-1%&7]."
+			else:
+				send "&9Permissions> &7You do not have permission to do that."
+#MAIN-COMMANDS
+command /rel [<text>]:
+	permission: mineplex.dev
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if arg 1 is not set:
+			broadcast "&9Console> &7The Server is recompiling in two seconds."
+			wait 2 seconds
+			execute player command "/sk reload Survival"
+			send "&9Reload> &7You have been reloaded the SourceCode."
+		else:
+			set {_timeiout} to arg 1 parsed as a number
+			if {_timeiout} > 20:
+				send "&9Reload> &7Invalid waiting time (&e1->20&7)."
+				stop
+			else:
+				broadcast "&9Console> &7The Server is recompiling in %arg-1% seconds."
+				wait  seconds
+				execute player command "/sk reload Survival"
+				send "&9Reload> &7You have been reloaded the SourceCode."	
+#scorebard
+every 1 second:
+	if {mineplex.usescoreboard} is true:
+		stop
+	else:
+		loop all players:
+			if {clan.joined.%loop-player%} is not set:
+				set {clan.joined.%loop-player%} to "None"
+			if {global.kills.toatal.%loop-player%} is not set:
+				set {global.kills.toatal.%loop-player%} to 0
+			wipe loop-player's sidebar
+			set name of sidebar of loop-player to "&f&lSURVIVAL"
+			set score "&b&lServer" in sidebar of loop-player to 15
+			set score "&f%loop-player's world%" in sidebar of loop-player to 14
+			set score "&1 " in sidebar of loop-player to 13
+			set score "&a&lClan" in sidebar of loop-player to 12
+			set score "&rNo Clan" in sidebar of loop-player to 11
+			set score "&2 " in sidebar of loop-player to 10
+			set score "&e&lKills" in sidebar of loop-player to 9
+			set score "&f%{global.kills.toatal.%loop-player%}%" in sidebar of loop-player to 8
+			set score "&3 " in sidebar of loop-player to 7
+			set score "&6&lRank" in sidebar of loop-player to 6
+			set score "&f%{mineplex.api.displayrank.%loop-player%}%" in sidebar of loop-player to 5
+			set score "&4 " in sidebar of loop-player to 4
+			set score "&c&lWebsite" in sidebar of loop-player to 3
+			set score "&f%{mineplex.config.website}%" in sidebar of loop-player to 2
+			set score "&f----------------" in sidebar of loop-player to 1		
+command /server [<text>]:
+	trigger:
+		if arg 1 is not set:
+			set {_world} to "%player's world%"
+			send "&9Portal> &7You are currently on server: &6%{_world}%&7"
+		else:
+			if arg-1 is "%player's world%":
+				message "&9Portal> &7You are already on server &6%arg-1%&7."
+				stop
+			if arg-1 is "Lobby-1":
+				send "&9Portal> &7You have been sent from &6%world% &7to &6Lobby"
+				wait 1 tick
+				execute console command "/mvtp %player% %arg-1%"
+				stop
+			if arg-1 is "Staff-1":
+				if player has permission "mineplex.trainee":
+					send "&9Portal> &7You have been sent from &6%world% &7to &6%arg-1%"
+					wait 3 seconds
+					execute console command "/mvtp %player% Staff-1"
+					stop
+				else:
+					send "&9Portal> &cYou don't have permission to join &6Staff-1"
+			if {mps.online.%arg-1%} is true:
+				if {vanish.server.%arg-1%} is false:
+					if {whitelist.server.%arg-1%} is false:
+						send "&9Portal> &7You have been sent from &6%world% &7to &6%arg-1%"
+						wait 1 tick
+						execute console command "/mvtp %player% %arg-1%"
+						stop
+					else:
+						if player has permission "mineplex.admin":
+							send "&9Portal> &7You have been sent from &6%world% &7to &6%arg-1%"
+							wait 1 tick
+							execute console command "/mvtp %player% %arg-1%"
+							stop
+						else:
+							send "&9Portal> &7You dont have permission to join &6%arg-1%"
+							stop
+				else:
+					if player has permission "mineplex.admin":
+						send "&9Portal> &7You have been sent from &6%world% &7to &6%arg-1%"
+						wait 1 tick
+						execute console command "/mvtp %player% %arg-1%"
+						stop
+					else:
+						send "&9Portal> &7Server &6%arg-1% &7does not exist!"
+						stop
+			else:
+				send "&9Portal> &7Server &6%arg-1% &7does not exist!"
+				
+
+				
+				
+function worldcreate(arg1: text, arg2: text, arg3: text, p: player) :: number:
+	if {_p} has permission "mineplex.dev":
+		if {_arg1} is "create":
+			if {_arg2} is "normal":
+				if {_arg3} is not "Lobby" or "Survival" or "Survival-1" or "Lobby-1": 
+					message "&9Server Management> &7%{_arg2}% successfully created. You will be sent to it shortly." to {_p}
+					message "&9Server Management> &7If you haven't been connected in 20 seconds, type /server %{_arg3}%." to {_p}
+					execute console command "/mv create %{_arg3}% normal"
+					set {online.kps.%{_arg3}%} to 1
+					wait 10 seconds
+					execute console command "/mvtp %{_p}% %{_arg3}%"
+					execute console command "/mvconfirm"
+					set {antifall.%{_p}%} to true
+					send "&9Condition> &7You are protected for &a10 &7seconds." to {_p}
+					wait 10 seconds
+					send "&9Condition> &7You are no longer protected." to {_p}
+					set  {antifall.%{_p}%} to false
+		if {_arg1} is "delete":
+			if {_arg2} is set:
+				if {online.kps.%{_arg2}%} is 1:
+					execute console command "/mv delete %{_arg2}%"
+					execute console command "/mvconfirm"
+					message "&9Server Management> &7%{_arg2}% successfully deleted." to {_p}
+					set {online.kps.%{_arg2}%} to 0
+					
+		if {_arg1} is "Game_Style":
+			if {_p} has permission "mineplex.jrdev":
+				execute {_p} command "/server Min-1"
+			else:
+				send "&9Permissions> &7This requires Permission Rank [&9JR.DEV&7]." to {_p}
+				send "&9Info> &7This feature might be locked. Please try again layter." to {_p}
+			
+	else:
+		send "&9Permissions> &7This requires Permission Rank [&9LEGEND&7]." to {_p}
+		
+command /world [<string>] [<string>] [<string>]:
+	permission: mineplex.dev
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if arg 1 is not set:
+			send "&9Server Management> &7USsage:"
+			send "&4/world <create / delete> (target)&f Create/Delete a World&4 Dev"
+		else:
+			if arg 1 is "create":
+				if arg 2 is set:
+					if arg 2 is "normal":
+						worldcreate("%arg-1%", "%arg-2%", "%arg-3%", player)
+					else:
+						send "&9Server Management> &7USsage:"
+						send "&4/world <create / delete> (target)&f Create/Delete a World&4 Dev"
+				else:
+					send "&9Server Management> &7USsage:"
+					send "&4/world <create / delete> (target)&f Create/Delete a World&4 Dev"
+			if arg 1 is "delete":
+				if arg 2 is set:
+					worldcreate("%arg-1%", "%arg-2%", "%arg-3%", player)
+				else:
+					send "&9Server Management> &7USsage:"
+					send "&4/world <create / delete> (target)&f Create/Delete a World&4 Dev"
+				
+				
+				
+				
+on fade of snow or ice:
+    cancel event
+				
+				
+command /?:
+	aliases: /bukkit:?
+	trigger:
+		send "&cI'm sorry, but you do not have permission to perform this command. Please contact the server administrators if you believe that this is in error."
+command /about:
+	aliases: /bukkit:about
+	trigger:
+		send "&cI'm sorry, but you do not have permission to perform this command. Please contact the server administrators if you believe that this is in error."
+command /plugins:
+	aliases: /bukkit:plugins
+	trigger:
+		if player doesn't have permission "mineplex.dev":
+			send "&cI'm sorry, but you do not have permission to perform this command. Please contact the server administrators if you believe that this is in error."
+			stop
+command /ver:
+	aliases: /bukkit:ver
+	trigger:
+		send "&cI'm sorry, but you do not have permission to perform this command. Please contact the server administrators if you believe that this is in error."
+command /version:
+	aliases: /bukkit:version
+	trigger:
+		send "&cI'm sorry, but you do not have permission to perform this command. Please contact the server administrators if you believe that this is in error."
+#ADMIN
+on block break:
+	if {safemode.toggle} is "True":
+		if player doesn't have permission "mineplex.builder":
+			cancel event
+			send "&9Safe Mode> &7The Safe Mode has been enabled! You cannot place/break blocks."
+
+on block place:
+	if {safemode.toggle} is "True":
+		if player doesn't have permission "mineplex.builder":
+			cancel event
+			send "&9Safe Mode> &7The Safe Mode has been enabled! You cannot place/break blocks."		
+#Spawn
+on join:
+	if {ownhouses.%player%} = 0:
+		teleport player to {global.survival.spawn}
+command /setspawn:
+	permission: mineplex.jrdev
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		set {global.survival.spawn} to player's position
+		send "&9Spawn> &7The Global Survival Spawn has been set."
+
+command /spawn:
+	trigger:
+		set {_waitedcommandspawn} to difference between {spawn.teleport.%player%.lastused} and now
+		if {_waitedcommandspawn} is less than 30 seconds:
+			message "&9Recharge> &7You cannot use this command &7for &a%difference between 30 seconds and {_waitedcommandspawn}%&7."
+			stop
+		else:
+			if {global.survival.spawn} is set:
+				teleport player to {global.survival.spawn}
+				set {spawn.teleport.%player%.lastused} to now
+				send "&9Teleport> &7You was teleported to the Spawn Zone."
+			else:
+				if player has permission "mineplex.admin":
+					send "&9Command Center> &cThere is no spawn. Create one using &e/setspawn"
+				send "&9Command Center> &cThere was an error accessing your order."
+#Safe Mode
+command /safemode:
+	permission: mineplex.leader
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if {safemode.toggle} is not set:
+			set {safemode.toggle} to "False"
+			broadcast "&9Safe Mode> &e%player% &7has disabled Safe Mode."
+			stop
+		if {safemode.toggle} is "false":
+			set {safemode.toggle} to "true"
+			broadcast "&9Safe Mode> &e%player% &7has enabled Safe Mode."
+			stop
+		if {safemode.toggle} is "true":
+			set {safemode.toggle} to "false"
+			broadcast "&9Safe Mode> &e%player% &7has disabled Safe Mode."
+			stop
+command /invsee [<player>]:
+	permission: mineplex.mod
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if arg 1 is not set:
+			send "&9Inventory> &7Correct Ussage: &6/invsee (player) SMod"
+		else:
+			if arg 1 is "%player%":
+				send "&9Inventory> &cYou cannot open you're own Inventory."
+			else:
+				open the argument 1's inventory for the player
+command /ip [<offline player>]:
+	permission: mineplex.admin
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if arg 1 is not set:
+			send "&9Ip> &7Correct Ussage: &4/ip (player)"
+		else:
+			if arg 1 is online:
+				if arg 1 has permission "mineplex.trainee":
+					send "&9Ip> &7You cannot find %arg-1%'s IP."
+				else:
+					send "&9Ip> &7The ip of &e%argument 1%&7 is &f%ip of argument 1%&7."
+			else:
+				send "&9Ip> &7Locating &e%arg-1%&7..."
+				wait 5 seconds
+				send "&9Ip> &7Could not locate &e%arg-1%&7."
+command /clearinventory [<player>]:
+	permission: mineplex.admin
+	permission message: &9Permissions> &7You do not have permission to do that.
+	aliases: ci
+	trigger:
+		if argument 1 is not set:
+			clear the inventory of player
+			message "&9Clear> &7Your inventory has been cleared." to player
+		else:
+			clear the inventory of arg 1
+			message "&9Clear> &7Your inventory has been Cleared by &e%player%&7." to arg 1
+			send "&9Clear> &e%arg-1%&7's Inventory has been Cleared."
+command /heal [<offline player>]:
+	permission: mineplex.srmod
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if arg 1 is not set:
+			heal player
+			add 10 to player's hunger bar
+			message "&9Heal> &7You have been healed."
+		else:
+			if arg 1 is online:
+				heal argument 1
+				add 10 to argument 1's hunger bar
+				message "&9Heal> &7You have been healed by &e%player%&7." to arg-1
+				message "&9Heal> &e%arg-1% &7Was Succesfully Healed." to player
+			else:
+				send "&9Online Player Search> &e0 &7matches for [&e%arg-1%&7]."		
+command /feed [<offline player>] [<text>]:
+	permission: minepelx.srmod
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if arg 1 is set:
+			if arg 1 is online:
+				if arg 2 parsed as a number is not set:
+					message "&9Feed> &7Invalid Amount. Defaulting to [1]."
+					wait 1 second
+					message "&9Feed> &7Setting &e%arg-1%'s &7Hunger Bar to &a10&7."
+					set arg-1's hunger bar to 10
+				else:
+					if arg-2 parsed as a number > 10:
+						send "&9Feed> &cInvalid interval &7[&e0<->10&7]"
+						stop
+					else:
+						message "&9Feed> &7Setting &e%arg-1%'s &7Hunger Bar to &a%arg-2%&7."
+						set arg-1's hunger bar to arg-2 parsed as a number
+			else:
+				send "&9Online Player Search> &e0 &7matches for [&e%arg-1%&7]."
+		else:
+			set player's hunger bar to 10
+			send "&9Feed> &7Setting &e%player%'s &7Hunger Bar to &a10&7."		
+command /kick [<offline player>] [<text>]:
+	permission: mineplex.trainee
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if arg 1 is set:
+			if arg 2 is set:
+				if arg 1 is "%player%":
+					send "&9Punish> &7You cannot kick yourself."
+				if arg 1 is online:
+					kick argument 1 due to "&c&lYou have been Kicked by %player%%nl%&f%arg-2%%nl%&2Unfairly Kicked? Appeal at &a%{mineplex.config.appealwebsite}%"
+					broadcast "&9Punish> &7%arg-1% was kicked by %player%."
+				else:
+					send "&9Online Player Search> &e0 &7matches for [&e%arg-1%&7]."
+			else:
+				send "&9Kick> &7Ussage: &6/kick <Player> <Reason> &6Mod"
+		else:
+			send "&9Kick> &7Ussage: &6/kick <Player> <Reason> &6Mod"
+command /speed [<string>] [<text>]:
+	permission: mineplex.srmod
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if arg 1 is set:
+			if arg 2 is not set:
+				if arg 1 is "reset" or "default":
+					set player's walk speed to 0.2
+					set player's fly speed to 0.1
+					send "&9Speed> &7Set &e%player%'s &7Walk Speed to Default &7[&e0.2&7]."
+					send "&9Speed> &7Set &e%player%'s &7Fly Speed to Default &7[&e0.1&7]."
+					stop
+				else:
+					set player's walk speed to arg 1 parsed as number
+					send "&9Speed> &7Set &e%player%'s &7Walk Speed to &a%arg-1%&7."
+					stop
+			if arg 2 is set:
+				if arg 1 parsed as text is "fly":
+					set player's fly speed to arg 2 parsed as number
+					send "&9Speed> &7Set &e%player%'s &7Fly Speed to &a%arg-2%&7."
+				else if arg 1 is "Walk":
+					set player's walk speed to arg 2 parsed as number
+					send "&9Speed> &7Set &e%player%'s &7Walk Speed to &a%arg-2%&7."
+					stop
+		else:
+			send "&9Speed> &7Ussage: &e/speed <Fly / Walk / Reset> <Value>"
+command /whitelist [<text>]:
+	permission: mineplex.admin
+	aliases: lockdown
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if arg 1 is set:
+			if arg 1 is "on":
+				set {whitelist.beta} to "True"
+				loop all players:
+					send "&9Lockdown> &7Turned on the Lockdown mode on server &e%world%&7." to loop-player
+			if arg 1 is "off":
+				set {whitelist.beta} to "False"
+				loop all players:
+					send "&9Lockdown> &7Turned off the Lockdown mode on server &e%world%&7." to loop-player
+		else:
+			send "&9Lockdown> &7Listing Commands:"
+			send "&4/lockdown on &7Turn on Lockdown Mode &4Admin"
+			send "&4/lockdown off &7Turn off Lockdown Mode &4Admin"
+on connect:
+	if {whitelist.beta} is "True":	
+		if player doesn't have permission "mineplex.trainee":
+			kick player due to "&4&lYou are not allowed to join at the server now! %nl% &7To join you need permission rank [Trainee&7] %nl% %nl%&aYou are not a Trainee? Apply here: https://discord.gg/6TBAMZh"
+			loop all players:
+				if loop-player has permission "mineplex.trainee":
+					send "&9Join> &7%player% tried to join but he is not white-listed!" to loop-player
+on join:
+	if {ownhouses.%player%} is not set:
+		set {ownhouses.%player%} to "0"
+	if {%player%.houses.total} is not set:
+		set {%player%.houses.total} to ""
+on weather change to rainy:
+	if {weather.lock.global} is "True":
+		set weather to sunny
+on weather change to thundering:
+	if {weather.lock.global} is "True":
+		set weather to sunny				
+command /weather [<string>] [<string>] [<string>] [<string>] [<string>] :
+	permission: mineplex.srmod
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if arg 1 is not set:
+			send "&9Weather> &7Commands List:"
+			send "&4/weather clear &4[@w(world)]&7: Clear the Weahther"
+			send "&4/weather set <type> [@w(world)] [@d(duration)] [@i(intensity)]&7: Set the current world settings."
+			send "&4/weather disable [@w(world)] [@d(duration)]&7: Disable Weather in a specific world."
+		else:
+			if arg 1 is set:
+				if arg 1 is "set":
+					if {weather.lock.global} is "True":
+						if player doesn't have permission "mineplex.leader":
+							send "&9Weather> &7Weather is currently Locked. &4Leader"
+							stop
+						else:
+							mcrjson("%player%", "&9Weather> &7Weather is currently Locked. Unlock this feature ||&7(&eClick Here&7).||ttp:&9/weather disable %world%||cmd:/weather disable %world%")
+							stop
+					if arg 2 is set:
+						if arg 2 is "rain" or "sunny" or "storm" or "clear" or "thunder":
+							if arg 2 is "Sunny" or "Clear":
+								execute player command "/weather clear"
+								stop
+							if arg 3 is set:
+								if arg 4 is set:
+									if arg 5 is set:
+										send "&9Weather> &7Waiting for weather to change..."
+										wait 2 seconds
+										if arg 2 is "rain":
+											set weather to rain
+											broadcast "&9Weather> &e%player% &7changed the Weather to &9Rain &7in world &a%arg-3% &7for &e%arg-4% &7Seconds &7with intensity 2600."
+										if arg 2 is "storm" or "thunder":
+											set weather to thunder
+											broadcast "&9Weather> &e%player% &7changed the Weather to &9Storm &7in world &a%arg-3% &7for &e%arg-4% &7Seconds &7with intensity 2600."
+										stop
+									else:
+										send "&9Weather> &7Missing Intensity, Defaulting to &62600&7."
+										wait a second
+										send "&9Weather> &7Waiting for weather to change..."
+										wait 2 seconds
+										if arg 2 is "rain":
+											set weather to rain
+											broadcast "&9Weather> &e%player% &7changed the Weather to &9Rain &7in world &a%arg-3% &7for &e%arg-4% &7Seconds &7with intensity 2600."
+										if arg 2 is "storm":
+											set weather to thunder
+											broadcast "&9Weather> &e%player% &7changed the Weather to &9Storm &7in world &a%arg-3% &7for &e%arg-4% &7Seconds &7with intensity 2600."
+										stop
+								else:
+									send "&9Weather> &7Missing Intensity and Time, Defaulting to &610 &7/&6 2600&7."
+									wait a second
+									send "&9Weather> &7Waiting for weather to change..."
+									wait 2 seconds
+									if arg 2 is "rain":
+										set weather to rain
+										broadcast "&9Weather> &e%player% &7changed the Weather to &9Rain &7in world &a%arg-3% &7for &e10 &7Minutes &7with intensity 2600."
+									if arg 2 is "storm":
+										set weather to thunder
+										broadcast "&9Weather> &e%player% &7changed the Weather to &9Storm &7in world &a%arg-3% &7for &e10 &7Minutes &7with intensity 2600."
+									stop
+							else:
+								send "&9Weather> &7Missing Intensity, Time and World, Defaulting to &610 &7/&6 2600 &7/ &6%World%&7."
+								wait a second
+								send "&9Weather> &7Waiting for weather to change..."
+								wait 2 seconds
+								if arg 2 is "rain":
+									set weather to rain
+									broadcast "&9Weather> &e%player% &7changed the Weather to &9Rain &7in world &a%world% &7for &e10 &7Minutes &7with intensity 2600."
+								if arg 2 is "storm":
+									set weather to thunder
+									broadcast "&9Weather> &e%player% &7changed the Weather to &9Storm &7in world &a%world% &7for &e10 &7Minutes &7with intensity 2600."
+								stop
+						else:
+							send "&9Weather> &7Invalid Weather Type &7[&e%arg-2%&7]."
+							stop
+					else:
+						send "&9Weather> &7Commands List:"
+						send "&4/weather clear &4[@w(world)]&7: Clear the Weather"
+						send "&4/weather set <type> [@w(world)] [@d(duration)] [@i(intensity)]&7: Set the current world settings."
+						send "&4/weather disable [@w(world)] [@d(duration)]&7: Disable Weather in a specific world."
+						stop
+				if arg 1 is "clear":
+					if arg 2 is not set:
+						set weather to clear
+						broadcast "&9Weather> &a%player% &7cleared the Weather &7in world &a%world%&7."
+						stop
+					else:
+						set weather to clear
+						broadcast "&9Weather> &a%player% &7cleared the Weather &7in world &a%arg-2%&7."
+						stop
+				if arg 1 is "disable" or "Lock" or "Unlock":
+					if player has permission "mineplex.leader":
+						if arg 2 is set:
+							if arg 3 is set:
+								if arg 3 parsed as a number < 500:
+									if {weather.lock.global} is not set:
+										set {weather.lock.global} to "False"
+										send "&9Weather> &e%player% &7UnLocked Weather in World &e%arg-2%&7."
+										stop
+									if {weather.lock.global} is "False":
+										set {weather.lock.global} to "True"
+										send "&9Weather> &e%player% &7Locked Weather in World &e%arg-2%&7."
+										stop
+									if {weather.lock.global} is "True":
+										set {weather.lock.global} to "False"
+										send "&9Weather> &e%player% &7UnLocked Weather in World &e%arg-2%&7."
+										stop
+								else:
+									send "&9Weather> &7Invalid amount (0 -> 50.000)."
+							else:
+								if {weather.lock.global} is not set:
+									set {weather.lock.global} to "False"
+									wait a second
+									send "&9Weather> &e%player% &7UnLocked Weather in World &e%arg-2%&7."
+									stop
+								if {weather.lock.global} is "False":
+									set {weather.lock.global} to "True"
+									send "&9Weather> &7Missing Time, Defaulting to &610&7."
+									wait a second
+									send "&9Weather> &e%player% &7Locked Weather in World &e%arg-2% &7for &a10 &7Minutes."
+									stop
+								if {weather.lock.global} is "True":
+									set {weather.lock.global} to "False"
+									wait a second
+									send "&9Weather> &e%player% &7UnLocked Weather in World &e%arg-2%&7."
+									stop
+						else:
+							send "&9Weather> &7Listing Commands:"
+							send "&4/weather disable [@w(world)] [@d(duration)]&7: Disable Weather in a specific world."
+							stop
+					else:
+						send "&9Permissions> &7You do not have permission to do that."
+						stop				
+#Event
+On death of a player:
+	if {event.type} is "Kill.Players":
+		if attacker is a player:
+			add 1 to {kills.event.total.%attacker%}
+			stop
+	add 1 to {global.kills.toatal.%attacker%}
+on breaking dirt:
+	if {event.type} is "Break.Dirt":
+		add 1 to {Break.Dirt.total.%player%}
+		stop
+command /events:
+	permission: mineplex.srmod
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		send "&9Event> &7Listing Events:"
+		send "&6/event &7time set <Day/Night/Evening/Night> &7Set the time &6Sr.Mod"
+		send "&6/event &7start <Kill.Players / Break [Block]> &7Set event &6Sr.Mod"
+		send "&6/event &7stop &7Stop the current Event &6Sr.Mod"
+		send "&4/event &7reset &7Delete The Event Number &4Admin"
+		stop
+command /event [<string>] [<string>] [<string>]:
+	aliases: e
+	permission: mineplex.srmod
+	permission message: &9Permissions> &7You do not have permission to do that.
+	trigger:
+		if arg 1 is set:
+			if arg 2 is set:
+				if arg 1 is "time":
+					if arg 2 is "set":
+						if arg 3 is "Morning":
+							execute console command "/minecraft:time set 0"
+							broadcast "&9Event Time> &e%player% &7seted the time to &9Morning&7."
+							stop
+						if arg 3 is "Night":
+							execute console command "/minecraft:time set 18000"
+							broadcast "&9Event Time> &e%player% &7seted the time to &9Night&7."
+							stop
+						if arg 3 is "Day":
+							execute console command "/minecraft:time set 5000"
+							broadcast "&9Event Time> &e%player% &7seted the time to &9Day&7."
+							stop
+						if arg 3 is "Evening":
+							execute console command "/minecraft:time set 12500"
+							broadcast "&9Event Time> &e%player% &7seted the time to &9Evening&7."
+							stop
+						else:
+							send "&9Event Time> &7Invalid Time Format (&eMorning&7, &eNight&7, &eDay &7,Evening&7)."
+							stop
+					else:
+						send "&9Event Time> &7Incorect Ussage:"
+						send "&f/event time set (Day / Night / Morning / &eEvening)."
+						stop
+				if arg 1 is "start":
+					if arg 2 is "Kill.Players":
+						set {_message} to "Kill Players"
+						set {event.type} to "Kill.Players"
+						set {_task} to "Kill as many players as possible."
+						send all players title "&eNew Global Event" with subtitle "&f%{_message}%" for 5 seconds
+						broadcast "&9Event ##%{event.number}%> &b%{_task}%"
+						stop
+					if arg 2 is "Break":
+						if arg 3 is set:
+							if arg 3 is "Stone" or "Gold_Ore" or "Diamond_Ore" or "Dirt":
+								set {event.type} to "Break.%arg-3%"
+								set {_message} to "Break %arg-3%"
+								set {_task} to "Break as much %arg-3% as you can."
+								send all players title "&eNew Global Event" with subtitle "&f%{_message}%" for 5 seconds
+								broadcast "&9Event ##%{event.number}%> &b%{_task}%"
+								stop
+			if arg 1 is "stop":
+				if {event.type} is not "None":
+					if {event.type} is "Kill.Players":
+						set {_message} to "The currently event is now Over"
+						add 1 to {event.number}
+						send all players title "&eGlobal Event Ended" with subtitle "&fThe currently event is now Over." for 5 seconds
+						broadcast "&9Event ##%{event.number}%> &b%{_message}%"
+						wait a second
+						loop all players:
+							if 	{kills.event.total.%loop-player%} < 5:						
+								send "&9Event> &7You didn't won anything from this event, but do not worry, there will be other events soon." to loop-player
+								set {kills.event.total.%loop-player%} to 0
+							if {kills.event.%loop-player%} > 5:
+								send "&9Event> &7You Won &e500 Shards &7for killing &a%{kills.event.total.%loop-player%}% &7Players." to loop-player
+								addShards(loop-player, 500)
+								set {kills.event.total.%loop-player%} to 0
+							if {kills.event.%loop-player%} > 10:
+								send "&9Event> &7You Won &e1000 Shards &7for killing &a%{kills.event.total.%loop-player%}% &7Players." to loop-player
+								addShards(loop-player, 1000)
+								set {kills.event.total.%loop-player%} to 0
+							if {kills.event.%loop-player%} > 20:
+								send "&9Event> &7You Won &e3000 Shards &7for killing &a%{kills.event.total.%loop-player%}% &7Players." to loop-player
+								addShards(loop-player, 3000)
+								set {kills.event.total.%loop-player%} to 0
+						wait 2 seconds
+						set {event.type} to "None"
+					if {event.type} is "Break.Stone" or "Break.Gold.Ore" or "Break.Diamond.Ore" or "Break.Dirt":
+						set {_message} to "The currently event is now Over"
+						send all players title "&eGlobal Event Ended" with subtitle "&fThe currently event is now Over." for 5 seconds
+						broadcast "&9Event ##%{event.number}%> &b%{_message}%"
+						add 1 to {event.number}
+						wait a second
+						loop all players:
+							if {%{event.type}%.total.%loop-player%} < 5:						
+								send "&9Event> &7You didn't won anything from this event, but do not worry, there will be other events soon." to loop-player
+								set {%{event.type}%.total.%loop-player%} to 0
+							if {%{event.type}%.total.%loop-player%} > 5:
+								send "&9Event> &7You Won &e500 Shards &7for breaking &a%{%{event.type}%.total.%loop-player%}% &7Blocks." to loop-player
+								if {event.type} is "Break.Dirt":
+									addShards(loop-player, 500)
+									set {%{event.type}%.total.%loop-player%} to 0
+								if {event.type} is "Break.Gold.Ore":
+									addShards(loop-player, 5000)
+									set {%{event.type}%.total.%loop-player%} to 0
+								if {event.type} is "Break.Diamond.Ore":
+									addShards(loop-player, 50000)
+									set {%{event.type}%.total.%loop-player%} to 0
+						wait 2 seconds
+						set {event.type} to "None"
+							
+				else:
+					send "&9Event> &cThere is no Events Running at the moment."
+			if arg 1 is "reset":
+				if player has permission "mineplex.admin":
+					if arg 2 is not set:
+						send "&9Event> &cThe Event number has been deleted from the database."
+						set {event.number} to 0
+					else:
+						send "&9Event> &7Incorect Ussage:"
+						send "&4/event reset&7: Reset the event number from database. &4Admin"
+				else:
+					send "&9Permissions> &7You do not have permission to do that."
+			if arg 1 is "set":
+				if player has permission "mineplex.admin":
+					if arg 2 is set:
+						set {_eventnumberreset} to arg-2 parsed as a number
+						if {_eventnumberreset} > 0:
+							send "&9Event > &cThe Event number has been modified in the database. &7(&9##%{event.number}%&7)."
+							set {event.number} to arg 2
+					else:
+						send "&9Event> &7Incorect Ussage:"
+						send "&4/event set (Event)&7: Modify the event number from database. &4Admin"
+				else:
+					send "&9Permissions> &7You do not have permission to do that."
+			else:
+				if arg 1 is not "reset" or "set" or "start" or "stop" or "time":
+					send "&9Weather> &7Invalid Event Pack &7[&e%arg-1%&7]."
+		else:
+			send "&9Event> &7Listing Commands:"
+			send "&6/event start (Event)&7: Start an Event &6Sr.Mod"
+			send "&6/event stop&7: Stop the currently Event &6Sr.Mod"
+			send "&4/event set (Event)&7: Modify the event number from database. &4Admin"
+			send "&4/event reset&7: Reset the event number from database. &4Admin"	
+on join:
+	add 1 to {total.joins.%player%}
+	set {_t} to {total.joins.%player%}
+	set "Join_Times" to "%{_t}%" in yaml file "plugins/Data-Base/playerdata/%{_uuid}%.yml"
+on join:
+	set {_uuid} to UUID of player
+	if file "plugins/Data-Base/playerdata/%{_uuid}%.yml" doesn't exists:
+		create file "plugins/Data-Base/playerdata/%{_uuid}%.yml"
+		set "name" to "%player%" in yaml file "plugins/Data-Base/playerdata/%{_uuid}%.yml"
+		set "UUID" to "%{_uuid}%" in yaml file "plugins/Data-Base/playerdata/%{_uuid}%.yml"
+		set "Bans" to "No_Database_Found" in yaml file "plugins/Data-Base/playerdata/%{_uuid}%.yml"
+		set "Mutes" to "No_Database_Found" in yaml file "plugins/Data-Base/playerdata/%{_uuid}%.yml"
+		set "Join_Times" to "0" in yaml file "plugins/Data-Base/playerdata/%{_uuid}%.yml"
+	else:
+		stop
+command /arena [<text>] [<text>] [<text>]:
+	trigger:
+		set {_waitedforarena} to difference between {arena.join.%player%.lastused} and now
+		if {_waitedforarena} is less than 26 seconds:
+			message "&9Recharge> &7You cannot use this command &7for &a%difference between 26 seconds and {_waitedforarena}%&7."
+			stop
+		else:
+			if arg 1 is set:
+				if arg 1 is "join":
+					if arg 2 is not set:
+						open chest with 3 rows named "Avalable Arenas" to player
+						format slot 8 of player with enchanted book named "&4&lWarning!" with lore " ||&7By Joining in Arenas you must follow these rules:|| ||&c- To be Fair ||&c- Keep your Calm ||&c- Don't Camp ||&r ||&4*Non-Compliance is Punished by Moderators." to be unstealable
+						format slot 4 of player with emerald block named "&a&lJoin Arena 1" with lore "&c||&a ● Avalable" to close then run [execute player command "/arena join arena_1"]
+						format slot 12 of player with redstone block named "&c&lJoin Arena 2" with lore "&c||&c ● Unavalable" to close then run [send "&9Arena> &cYour statistics are too inaporpiate to join in that arena."]
+						format slot 13 of player with redstone block named "&c&lJoin Arena 3" with lore "&c||&c ● Unavalable" to close then run [send "&9Arena> &cYour statistics are too inaporpiate to join in that arena."]
+						format slot 14 of player with lapis block named "&c&lJoin Arena 5" with lore "&c||&c ● Unavalable" to close then run [send "&9Arena> &cThis arena is currently under construction."]
+					if arg 2 is set:
+						if arg 2 is "arena_1":
+							if {global.kills.toatal.%player%} >= 0:
+								set {_arena} to "1"
+								set {_am} to a random integer from 1 to 5
+								if {_am} is 1:
+									send "&9Arana> &7You was teleported to arena &a%{_arena}%&7."
+									teleport player to {arena.1.1}
+									set {arena.join.%player%.lastused} to now
+									stop
+								if {_am} is 2:
+									send "&9Arana> &7You was teleported to arena &a%{_arena}%&7."
+									teleport player to {arena.1.2}
+									set {arena.join.%player%.lastused} to now
+									stop
+								if {_am} is 3:
+									send "&9Arana> &7You was teleported to arena &a%{_arena}%&7."
+									teleport player to {arena.1.3}
+									set {arena.join.%player%.lastused} to now
+									stop
+								if {_am} is 4:
+									send "&9Arana> &7You was teleported to arena &a%{_arena}%&7."
+									teleport player to {arena.1.4}
+									set {arena.join.%player%.lastused} to now
+									stop
+								if {_am} is 5:
+									send "&9Arana> &7You was teleported to arena &a%{_arena}%&7."
+									teleport player to {arena.1.5}
+									set {arena.join.%player%.lastused} to now
+									stop
+							else:
+								send "&9Arena> &cYour statistics are too inaporpiate to join in that arena."
+				if arg 1 is "setspawn":
+					if arg 2 is set:
+						if arg 3 is set:
+							if arg 3 is "1":
+								set {arena.1.1} to player's position
+								send "Arena> &7SpwanPoint was set (&e%arg-3% ; %arg-2%&7)"
+							if arg 3 is "2":
+								set {arena.1.2} to player's position
+								send "Arena> &7SpwanPoint was set (&e%arg-3% ; %arg-2%&7)"
+							if arg 3 is "3":
+								set {arena.1.3} to player's position
+								send "Arena> &7SpwanPoint was set (&e%arg-3% ; %arg-2%&7)"
+							if arg 3 is "4":
+								set {arena.1.4} to player's position
+								send "Arena> &7SpwanPoint was set (&e%arg-3% ; %arg-2%&7)"
+							if arg 3 is "5":
+								set {arena.1.5} to player's position
+								send "Arena> &7SpwanPoint was set (&e%arg-3% ; %arg-2%&7)"	
+			else:
+				send "&9Arena> &7Listing Commands:"
+				send "&f/arena join <arena name>&7: Join Arena."
+				if player has permission "mineplex.admin":
+					send "&4/arena setspawn <arena noumber>&7: set an Arena SpawnPoint."
+							
+							
+							
+							
+							
+							
+on join:
+	set {_uuid} to uuid of {_p}
+	if file "plugins/Login-Database/playerdata/%{_uuid}%.yml" doesn't exists:
+		create file "plugins/Login-Database/playerdata/%{_uuid}%.yml"
+		set "UserName" to "%player's name%" in yaml file "plugins/Login-Database/playerdata/%{_uuid}%.yml"
+		set "UUID" to "%{_uuid}%" in yaml file "plugins/Login-Database/playerdata/%{_uuid}%.yml"
+		set "First Joined" to "%now%" in yaml file "plugins/Login-Database/playerdata/%{_uuid}%.yml"
+		set "Password" to "None" in yaml file "plugins/Login-Database/playerdata/%{_uuid}%.yml"
+		set "Recovery-Password" to "None" in yaml file "plugins/Login-Database/playerdata/%{_uuid}%.yml"
+		set "Mail" to "None" in yaml file "plugins/Login-Database/playerdata/%{_uuid}%.yml"						
+							
+							
+							
+#login DataBase
+command /owner [<text>]:
+	permission: mineplex.owner
+	permission message: &9Permissions> &7You do not have permission to do that.
+	executable by: players
+	trigger:
+		if arg 1 is set:
+			if player is "Keyloren":
+				send "&9OWNER> &7Working..."
+				wait 2 seconds
+				send "&9OWNER> &7There was an error occured."
+			else:
+				send "&9OWNER> &4Protocol Violation"
+				execute console command "gwenban"
+		else:
+			send "&9OWNER> &4Invalid Two-Factor Authentication."
+on jump:
+	if {password.authlock.%player%} is true:
+		cancel event
+# Login 
+on join:
+	if {alreadyset.password.%player%} is not set:
+		set {alreadyset.password.%player%} to false
+	if {alreadyset.password.%player%} is true:
+		set {password.authlock.%player%} to true
+		apply slowness 999 to player for 999 seconds
+		apply blindness 999 to player for 999 seconds
+		set player's walk speed to 0
+		set player's fly speed to 0
+		send "&92FA> &7Please enter your two-factor auth code"
+		send "&92FA> &c/login (password)"
+		stop
+	else:
+		set {password.authlock.%player%} to true
+		apply slowness 999 to player for 999 seconds
+		apply blindness 999 to player for 999 seconds
+		send "&92FA> &7Please enter your two-factor auth code"
+		send "&92FA> &c/register (password) (password)"
+		stop
+on command:
+	if {password.authlock.%player%} is true:
+		if executor is player:
+			if command is not "login" or "register" or "l" or "r":
+				if {alreadyset.password.%player%} is true:
+					cancel event
+					send "&92FA> &7Please enter your two-factor auth code"
+					send "&92FA> &c/login (password)"
+				else:
+					cancel event
+					send "&92FA> &7Please enter your two-factor auth code"
+					send "&92FA> &c/register (password)"
+on break: 
+	if {password.authlock.%player%} is true:
+		cancel event
+		send "&92FA> &7Please enter your two-factor auth code"
+		send "&92FA> &c/login (password)"	
+on place: 
+	if {password.authlock.%player%} is true:
+		cancel event
+		send "&92FA> &7Please enter your two-factor auth code"
+		send "&92FA> &c/login (password)"
+on quit:
+	delete {loggedin.%player%}
+every 3 second :
+	loop all players:
+		if {password.authlock.%loop-player%} is true:
+			if {alreadyset.password.%loop-player%} is true:
+				send "&92FA> &7Please enter your two-factor auth code" to loop-player
+				send "&92FA> &c/login (password)" to loop-player
+			else:
+				send "&92FA> &7Please enter your two-factor auth code" to loop-player
+				send "&92FA> &c/register (password)" to loop-player
+
+				
+command /register [<string>] [<string>]:
+	trigger:
+		if {alreadyset.password.%player%} is false:
+			if arg 1 is set:
+				if arg 2 is set:
+					if arg 1 is arg 2:
+						if {_t} contains "~" or "`" or "!" or "@" or "##" or "$" or "%%" or "^" or "&" or "*" or "(" or ")" or "-" or "=" or "+" or "[" or "]" or "{" or "}" or ":" or ";" or "," or "<" or ">" or "?" or "/" or "\":
+							send "&92FA> &7Invalid authentication code (invalid character)."
+						else:
+							set {_uuid} to uuid of {_p}
+							set {password.%player%} to "%arg-1%"
+							set yaml value "Password" from file "plugins/Login-Database/playerdata/%uuid of player%.yml" to "1"
+							send "&92FA> &7Your password was set up!"
+							set {alreadyset.password.%player%} to true
+							set {password.authlock.%player%} to false
+							set {loggedin.%player%} to "true"
+							remove slowness from the player
+							remove blindness from the player
+							set player's walk speed to 0.2
+							set player's fly speed to 0.1
+					else:
+						send "&92FA> &7The password does not match."
+				else:
+					send "&92FA> &7Please enter a two-factor auth code."
+					send "&92FA> &c/register (password) (password)"
+			else:
+				send "&92FA> &7Please enter a two-factor auth code."
+				send "&92FA> &c/register (password) (password)"
+		else:
+			send "&92FA> &7Please enter your two-factor auth code"
+			send "&92FA> &c/login (password)"
+command /l [<text>]:
+	trigger:
+		if arg 1 is set:
+			execute player command "/login %arg-1%"		
+command /login [<text>]:
+	trigger:
+		if arg 1 is set:
+			if arg 1 is "%{password.%player%}%":
+				set {loggedin.%player%} to "true"
+				set {password.authlock.%player%} to false
+				send "&92FA> &7Succesfully Logged in."
+				remove slowness from the player
+				remove blindness from the player
+				set player's walk speed to 0.2 
+				set player's fly speed to 0.1
+			else:
+				send "&92FA> &7Invalid authentication code"
+		else:
+			send "&92FA> &7Please enter your two-factor auth code"
+			send "&92FA> &c/login (password)"						
+command /unregister [<offline player>]:					
+	trigger:
+		if arg 1 is not set:
+			if {unregisterwarn.%player%} is not set:
+				send "&92FA> &7Hey There! You are going to unregister! Your DataBase skills and progression will NOT be Deleted."
+				send "&92FA> &cWe are not responsable for your loosing your account, so please think twice before doing this!"
+				send "&92FA> &7Do &e/unregister &7if you are 100%% sure!"
+				set {unregisterwarn.%player%} to true
+				stop
+			else:
+				delete {password. .%player%}
+				delete {password.%player%}
+				delete {alreadyset.password.%player%}
+				send "&92FA> &7Succesfully unregistered from DataBase."
+				wait a second
+				delete {unregisterwarn.%player%}
+				set {_r} to randomize "ACCD37A12"
+				kick player due to "&4&lUnregistered Account%nl% %nl% %nl%&rDelete Token:%nl%%{_r}%"	
+		else:
+			if player has permission "mineplex.admin":
+				if arg 1 is set:
+					delete {password.authlock.%arg-1%}
+					delete {password.%arg-1%}
+					delete {alreadyset.password.%arg-1%}
+					send "&9MySql> &7Succesfully unregistered from DataBase."
+			else:
+				send "&9Permissions> &7You do not have permission to do that."		
+#Home Stuff
+command /sethome [<text>]:
+	trigger:
+		if {home.banned.%player%} is "true":
+			send "&9Punish> &7You are Home Banned because %{homebanned::%player%::reason}% by %{homebanned::%player%::by}% for Permanent."
+			stop
+		if player has permission "mineplex.legend":
+			if arg 1 is set:
+				set {home.%player%.%arg-1%} to player's position
+				send "&9Home> &7Your home [&e%arg-1%&7] has been set."
+			else:
+				send "&9Home> &7Correct Ussage:"
+				send "&9Home> &e/sethome <Home Name>"
+		else:
+			if arg 1 is set:
+				send "&9Permissions> &7This requires Permission Rank [&9ULTRA&7]."
+			else:
+				set {home.%player%.default} to player's position
+				add 1 to {ownhouses.%player%}
+				add "arg-1" to {%player%.houses::total::*}				
+# Public Houses		
+command /home [<text>] [<offline player>] [<text>]:
+	trigger:
+		if {home.banned.%player%} is "true":
+			if player doesn't have permission "mineplex.mod":
+				send "&9Punish> You are Home Banned because %{homebanned::%player%::reason}% by %{homebanned::%player%::by}% for Permanent."
+				stop
+		if arg 1 is set:
+			if arg 2 is not set:
+				if arg 3 is not set:
+					if player doesn't have permission "mineplex.legend":
+						send "&9Permissions> &7You do not have permission to do that."
+					else:
+						if player has permission "mineplex.legend":
+							if {home.%player%.%arg-1%} is set:
+								teleport player to {home.%player%.%arg-1%}
+								send "&9Home> &7Teleporting you to home [&e%arg-1%&7]."
+								stop
+							else:
+								if arg 1 is "invite":
+									send "&9Home> &7Ussage: /home invite (player) (home name)"
+									stop
+								if arg 1 is "visit":
+									send "&9Home> &7Ussage: /home visit (player) (home name)"
+									stop
+			if arg 2 is set:
+				if arg 3 is set:
+					if arg 1 is "invite":
+						if arg 2 is online:
+							if {home.banned.%arg-2%} is "true":
+								send "&9Punish Warning> &7%arg-2% was home banned by a moderator for %{homebanned::%arg-2%::reason}%." to player
+							if {home.%player%.%arg-3%} is set:
+								set {status.inv.%player%.%arg-2%} to "false"
+								send "&9Home> &7Invited &e%arg-2% &7to your home!"
+								mcrjson("%arg-2%", "&9Home> ||&e%player%&7 Invited you to his home! &7[&eClick here to Accept!&7].||ttp:&7Accept invitation from &b%player%&7!||cmd:/home visit %player% %arg-3%")
+								stop
+						else:
+							send "&9Online Player Search> &e0 &7matches for [&e%arg-2%&7]."
+							stop
+					if arg 1 is "visit":
+						if {home.%arg-2%.%arg-3%} is set:
+							if {status.inv.%arg-2%.%player%} is "false":
+								teleport player to {home.%arg-2%.%arg-3%}
+								send "&9Home> &7Teleporting you to &e%arg-2%&7's Home (&e%arg-3%&7)!"
+								send "&9Home> &e%player% &7joined to your home (&e%arg-3%&7)!" to arg-2
+								set {status.inv.%arg-2%.%player%} to "true"
+								stop
+							else:
+								send "&9Visit> &7This invitation expired or no longer exists."
+								stop
+						else:
+							send "&9Home> &cYou don't have permission to join at this home."
+							stop
+			if arg 1 is "inspect":
+				if player has permission "mineplex.mod":
+					if arg 2 is set:
+						if arg 3 is set:
+							if {home.%arg-2%.%arg-3%} is set:
+								if {home.reports.count.%arg-2%.%arg-3%} is not set:
+									set {home.reports.count.%arg-2%.%arg-3%} to 0
+								send "&9Inspect> &7Inspecting &e%arg-2%'s &7home:"
+								send "&9Inspect> &7Home Name:     &e%arg-3%"
+								send "&9Inspect> &7Home Level:    &e0"
+								send "&9Inspect> &7Home Rate:     &e0"
+								send "&9Inspect> &7Home Reports: &e%{home.reports.count.%arg-2%.%arg-3%}%"
+								teleport player to {home.%arg-2%.%arg-3%}
+								stop
+							else:
+								send "&9Home> &cThat home does not exists."
+								stop
+						else:
+							send "&9Inspect> &7Ussage: /home inspect (player) (player's home name)"
+							stop
+					else:
+						send "&9Inspect> &7Ussage: /home inspect (player) (player's home name)"
+						stop
+				else:
+					send "&9Permissions> &7You do not have permission to do that."
+					stop
+		if arg 1 is "ban" or "punish":
+			if player has permission "mineplex.mod":
+				if arg 2 is set:
+					if arg 3 is set:
+						if {home.banned.%arg-2%} is not set:
+							set {home.banned.%arg-2%} to "true"
+							broadcast "&9Punish> &7%player% banned %arg-1%'s home."
+							set {homebanned::%arg-2%::reason} to "%arg-3%"
+							set {homebanned::%arg-2%::by} to "%player%"
+							stop
+						if {home.banned.%arg-2%} is "true":
+							set {home.banned.%arg-2%} to "false"
+							broadcast "&9Punish> &7%player% unbanned %arg-1%'s home."
+							stop
+						if {home.banned.%arg-2%} is "false":
+							set {home.banned.%arg-2%} to "true"
+							broadcast "&9Punish> &7%player% banned %arg-1%'s home."
+							set {homebanned::%arg-2%::reason} to "%arg-3%"
+							set {homebanned::%arg-2%::by} to "%player%"
+							stop
+					else:
+						send "&9Home Punish> &7Ussage: &f/home ban <player> <reason>:&7 Ban a player's home."
+				else:
+					send "&9Home Punish> &7Ussage: &f/home ban <player> <reason>:&7 Ban a player's home."
+			else:
+				send "&9Home Punish> &7Ussage: &f/home ban <player> <reason>:&7 Ban a player's home."
+						
+		else:
+			if player doesn't have permission "mineplex.mod":
+				send "&9Home> &7Listing Home Commands:"
+				send "&f/home <home>: &eTeleports you to your home."
+				send "&f/home allow: &eAllow teleporting invited players to your home."
+				send "&f/home invite <player> <home name>: &eInvite a player to build / break on your home radius."
+				send "&f/home visit <player> <player's home>: &eJoin to a player's home."
+				stop
+			else:
+				send "&9Home> &7Listing Home Commands:"
+				send "&e/home <home> &7Teleports you to your home. &fPlayer"
+				send "&e/home allow &7Allow teleporting invited players to your home. &fPlayer"
+				send "&e/home invite <player> <home name> &7Invite a player to build / break on your home radius. &fPlayer"
+				send "&e/home visit <player> <player's home> &7Join to a player's home. &fPlayer"
+				send "&6/home inspect <target> &7Inspect a player's home. &6Mod"
+				send "&6/home ban <target> <target's home> &7Ban a player's home. &6Mod"
+				stop					
+function homereport(arg1: player , arg2: text , arg3: text , arg4: text , arg5: text) :: string:
+	loop all players:
+		if loop-player has permission "mineplex.mod":
+			send "&9Report> &7%{_arg1}% reported &e%{_arg2}%'s &7home for a &c%{_arg4}% &7offence with reason %{_arg5}%&7!" to loop-player
+			mcrjson("%loop-player%", "&9Report> ||&e&7Click Here to Investigate.||ttp:&7Investigate &e%{_arg2}%'s &7home &7[&a%{_arg3}%&7]!||cmd:/home inspect %{_arg2}% %{_arg3}%")
+			add 1 to {home.reports.count.%{_arg-1}%.%{_arg-2}%}		
+command /reporthome [<text>] [<text>] [<text>]:
+	aliases: homereport
+	trigger:
+		if {home.banned.%player%} is "true":
+			send "&9Punish> &7You are Home Banned because %{homebanned::%player%::reason}% by %{homebanned::%player%::by}% for Permanent."
+			stop
+		if arg 1 is set:
+			if arg 2 is set:
+				if arg 3 is set:
+					if {home.%arg-1%.%arg-2%} is set:
+						open chest with 3 rows named "Report %arg-1%" to player
+						#By Keyloren C
+						format slot 11 of player with TNT named "&c&lTrapping" with lore "&7Fire Trap, Burn Trap, Fall Trap, etc" to close then run [send "&9Home Report> &7You've succesfully reported %arg-2%'s home." to player]->[homereport(player, arg-1, arg-2, "Trapping", arg-3)]
+						format slot 13 of player with book and quill named "&3&lGame Exploits" with lore "&7Piston Bug, Spawner Bug Explot, etc" to close then run [send "&9Home Report> &7You've succesfully reported %arg-2%'s home." to player]->[homereport(player, arg-1, arg-2, "Bug Exploit", arg-3)]
+						format slot 15 of player with Grass Block named "&fIndecent Home Builds" with lore "&7Racism Builds, Indecent Builds, etc" to close then run [send "&9Report ##%{mineplex.report.id}%> &aSuccessfully created report." to player]->[homereport(player, arg-1, arg-2, "Indecent Home Builds", arg-3)]
+					else:
+						send "&9Home Report> &cThat home does not exists!"
+				else:
+					send "&9Home Report> &7Ussage: &e/reporthome <player> <player's home> <reason>"
+			else:
+				send "&9Home Report> &7Ussage: &e/reporthome <player> <player's home> <reason>"
+		else:
+			send "&9Home Report> &7Ussage: &e/reporthome <player> <player's home> <reason>"	
+command /deletehome [<text>]:
+	aliases: delhome
+	trigger:
+		if {home.banned.%player%} is "true":
+			send "&9Punish> &7You are Home Banned because %{homebanned::%player%::reason}% by %{homebanned::%player%::by}% for Permanent."
+			stop
+		if player has permission "mineplex.legend":
+			if arg 1 is set:
+				if {home.%player%.%arg-1%} is set:
+					delete {home.%player%.%arg-1%}
+					send "&9Home> &7Succesfully deleted home [&e%arg-1%&7]."
+				else:
+					send "&9Home> &cInvalid House Name."
+			else:
+				send "&9Home> &7Correct Ussage:"
+				send "&9Home> &e/delhome <Home Name>"
+		else:
+			if {home.%player%.default} is set:
+				delete {home.%player%.default}
+				send "&9Home> &7Succesfully deleted your home."			
+#Tpa Commands
+command /tpa [<offline player>]:
+	trigger:
+		if arg 1 is set:
+			if arg 1 is online:
+				if {mineplex.tpastop.%arg-1%} is true:
+					message "&9Tpa> &7%player% Would like to teleport to you!" to argument 1
+					message "&9Tpa> &7Use &e/tpaccept&7 to allow it!" to argument 1
+					message "&9Tpa> &7Use &e/tpadeny&7 to not allow it!" to argument 1
+					message "&9Tpa> &7Request sent to &e%arg-1%&7."
+					set {mineplex.tprequest.%player%} to true
+					set {mineplex.tptorequest.%argument 1%} to the player
+				else:
+					send "&9Tpa> &e%arg-1% &7have TPA Request Disabled."
+			else:
+				send "&9Online Player Search> &e0 &7matches for [&e%arg-1%&7]."
+		else:
+			send "&9Tpa> &7Listing Commands:"
+			send "&e/tpa (player): &fRequest Teleport to a Player"
+			send "&e/tpaccept: &fAccept a Teleport Request"
+			send "&e/tpadeny: &fReject a Teleport Request"
+			send "&e/tpamenu: &fMore Settings"
+command /tpastop:
+	trigger:
+		if {mineplex.tpastop.%player%} is false:
+			set {mineplex.tpastop.%player%} to true
+			send "&9Tpa> &7Players can now tp at you!"
+		else:
+			set {mineplex.tpastop.%player%} to false
+			send "&9Tpa> &7Players can't tp at you anymore!"
+command /tpamenu:
+	trigger:
+		open chest with 3 rows named "TPA Preferences" to player
+		wait 2 ticks
+		format slot 13 of player with ice named "&a&lTPA Request" with lore "&7Enable/Disable TPA Requests" to close then run [execute player command "/tpastop"]
+command /tpaccept:
+	trigger:
+		if {mineplex.tptorequest.%player%} is set:
+			teleport {mineplex.tptorequest.%player%} to the player
+			message "&9Tpa> &7Teleport Request Accepted!" to {mineplex.tptorequest.%player%}
+			message "&9Tpa> &7Teleport Request Accepted!"
+			delete {mineplex.tprequest.%{mineplex.tptorequest.%player%}%}
+			delete {mineplex.tptorequest.%player%}
+		else:
+			message "&9Tpa> &7You have no Teleport Requests."
+command /tpadeny:
+	trigger:
+		if {mineplex.tptorequest.%player%} is set:
+			message "&9Tpa> &7You're Teleport Request was Rejected." to {mineplex.tptorequest.%player%}
+			message "&9Tpa> &7Teleport Request Rejected."
+			delete {mineplex.tprequest.%{mineplex.tptorequest.%player%}%}
+			delete {mineplex.tptorequest.%player%}
+		else:
+			message "&9Tpa> &7You have no Teleport Requests."		
+#Warps
+command /warp [<text>] [<text>]:
+	executable by: players
+	aliases: warps
+	trigger:
+		if arg 1 is set:
+			if arg 1 is "create" or "add" or "set":
+				if player has permission "mineplex.admin":
+					if arg 2 is set:
+						set {warp.global.%arg-2%} to player's location
+						send "&9Warp> &7Warp &a%arg-2%&7 was set to your location."
+					else:
+						send "&9Warp> &7Ussage: &e/warp create <Warp Name> &4Admin"
+				else: 
+					send "&9Permissions> &7You do not have permission to do that."
+			else if arg 1 is "delete" or "remove":
+				if player has permission "mineplex.admin":
+					if arg 2 is set:
+						delete {warp.global.%arg-2%}
+						send "&9Warp> &7Succesfully deleted warp &e%arg-2%&7."
+					else:
+						send "&9Warp> &7Ussage: &e/warp remove <Warp Name> &4Admin"
+				else:
+					send "&9Permissions> &7You do not have permission to do that."
+			else:
+				if {warp.global.%arg-1%} is set:
+					teleport player to {warp.global.%arg-1%}
+					send "&9Warp> &7You was teleported to warp &e%arg-1%&7."
+				else:
+					send "&9Warp Search> &e0 &7matches for [&eWarp %arg-1%&7]."
+		else:
+			open chest with 2 rows named "          Avalable Warps" to player
+			wait 2 ticks
+			format slot 1 of player with iron sword named "&a&lWarp PvP" to close then run [execute player command "/warp Pvp"]
+			format slot 3 of player with book named "&a&lWarp Enchant" to close then run [execute player command "/warp Enchant"]
+			format slot 5 of player with egg named "&a&lWarp XP" to close then run [execute player command "/warp Xp"]
+			format slot 7 of player with steak named "&a&lWarp Food" to close then run [execute player command "/warp Food"]
+			format slot 13 of player with Minecart named "&a&lWarp Shop" to close then run [execute player command "/warp Shop"]	
+#Utility
+command /head [<offline player>]:
+	permission: mineplex.builder
+	permission message: &9Permissions> &7You do not have permission to do that.
+	executable by: players
+	trigger:
+		if arg 1 is set:
+			execute console command "/minecraft:give %player% skull 1 3 {SkullOwner:%arg-1%}"
+			send "&9Head> &7Recived %arg-1%'s Head."
+		else:
+			send "&9Head> &7Ussage: &e/head <player> &9Builder"		
+#Power-Ups
+command /killmob [<string>]:
+	permission: mineplex.legend
+	permission message: &9Permissions> &7You do not have permission to do that.
+	executable by: players
+	trigger:
+		set {_waited} to difference between {command.%player%.lastused} and now
+		if {_waited} is less than a minute:
+			message "&9Recharge> &7You cannot use &aKillMob &7for &a%difference between a minute and {_waited}%&7."
+			stop
+		else:
+			if player has permission "mineplex.legend":
+				if player's world is not "Staff-1" or "EVENT-1":
+					if arg-1 is set:
+						set {_rad} to arg-1 parsed as a number
+						if {_rad} is a number:
+							if {_rad} > 100:
+								send "&9KillMob> &7You cannot Kill Mobs in radius bigger than &e100&7."
+							else:
+								set {_scan} to arg-1 parsed as a integer
+								loop all entities in radius {_scan} around player:
+									if loop-entity is a player:
+										if {reapat.killmob.%player%} is false:
+											message "&9KillMob> &7All Mobs has been killed in radius of &6%arg-1%"
+											set {reapat.killmob.%player%} to true
+											wait 2 seconds
+											set {reapat.killmob.%player%} to false
+									else:
+										kill loop-entity
+										set {command.%player%.lastused} to now
+					else:
+						send "&9Kill> &7Ussage: &e/killmob <radius>"
+				else:
+					message "&9KillMob> &7You can Kill Mobs Only at Kps Servers!"
+			else:
+				message "&9Permissions> &7This requires Permission Rank [&9TITAN&7]."
+				
+command /push [<offline player>]:
+	permission: mineplex.legend
+	permission message: &9Permissions> &7You do not have permission to do that.
+	executable by: players
+	trigger:
+		set {_waitedpush} to difference between {push.%player%.lastused} and now
+		if {_waitedpush} is less than 21 seconds:
+			message "&9Recharge> &7You cannot use &aPush &7for &a%difference between 21 seconds and {_waitedpush}%&7."
+			stop
+		else:
+			if arg-1 is online:
+				if player has permission "mineplex.legend":
+					push the arg-1 upwards at speed 0.70
+					push the arg-1 backwards at speed 1
+					set {push.%player%.lastused} to now
+					send "&9Push> &7You have been pushed by &e%player%&7!" to arg 1
+					send "&9Push> &7You have pushed &e%arg-1%&7!"
+				else:
+					message "&9Permissions> &7You do not have permission to do that."
+			else:
+				send "&9Online Player Search> &e0 &7matches for [&e%arg-1%&7]."
+	
+command /fear [<offline player>]:
+	permission: mineplex.legend
+	permission message: &9Permissions> &7You do not have permission to do that.
+	executable by: players
+	trigger:
+		set {_waitedfear} to difference between {fear.%player%.lastused} and now
+		if {_waitedfear} is less than 10 seconds:
+			message "&9Recharge> &7You cannot use &aFear &7for &a%difference between 10 seconds and {_waitedfear}%&7."
+			stop
+		else:
+			if arg-1 is set:
+				if arg-1 is online:
+					if player has permission "mineplex.legend":
+						set {fear.%player%.lastused} to now
+						apply slowness 255 to arg-1 for 5 seconds
+						apply blindness 999 to arg-1 for 5 seconds
+						send "&9Punish> &cYou will be banned for swearing Staff-Members!" to arg-1
+						wait 3 seconds
+						send "&9Fear> &7Just a prank, bro! - You're friend, &e%player%" to arg-1
+						send "&9Fear> &7Feared %arg-1%."
+					else:
+						message "&9Permissions> &7You do not have permission to do that."
+						
+				else:
+					send "&9Online Player Search> &e0 &7matches for [&e%arg-1%&7]."
+			else:
+				send "&9Fear> &cCorrect Ussage: &e/fear <player>"
+
+on damage:
+	if damage cause is fall:
+		if {antifall.%victim%} is true:
+			cancel event
+on join:
+	if player doesn't have permission "mineplex.youtube":
+		set player's fly mode to false
+on death:
+	set player's fly mode to false
+		
+command /fly:
+	permission: mineplex.legend
+	permission message: &9Permissions> &7You do not have permission to do that.
+	executable by: players
+	trigger:
+		set {_waitedfly} to difference between {fly.%player%.lastused} and now
+		if {_waitedfly} is less than 140 seconds:
+			message "&9Recharge> &7You cannot use &aFly &7for &a%difference between 10 seconds and {_waitedfly}%&7."
+			stop
+		else:
+			if player has permission "mineplex.youtube":
+				if player's gamemode is creative:
+					set player's gamemode to survival
+					send "&9Game Mode> &7%player% Creative Mode: &cFalse"
+				if player's fly mode is true:
+					set player's fly mode to false
+					send "&9Fly> &7Fly Mode: &cFalse"
+				else:
+					set player's fly mode to true
+					send "&9Fly> &7Fly Mode: &aTrue"
+			else:
+				if player has permission "mineplex.legend":
+					set player's fly mode to true
+					set {fly.%player%.lastused} to now
+					set {antifall.%player%} to true
+					send "&9Fly> &7Fly Mode: &aTrue"
+					wait 18 seconds
+					send "&9Fly> &eFly Mode will be stopped in 3"
+					wait 1 second
+					send "&9Fly> &eFly Mode will be stopped in 2"
+					wait 1 second
+					send "&9Fly> &eFly Mode will be stopped in 1"
+					set player's fly mode to false
+					send "&9Fly> &7Fly Mode: &cFalse"
+					set {fly.%player%.lastused} to false
+					wait 10 seconds
+					set {antifall.%player%} to false
+					
+command /mp_broadcast_amplify:
+	trigger:
+		if {waited.amplifier.veryfy.%player%} is "true":
+			loop all players:
+				mcrjson("%loop-player%", "&9Amplifier> ||&e%player%&7 amplified The Game &7[&eClick here to Thank!&7].||ttp:&7Thank &b%player%&7!||cmd:/thank %player%")
+				set {waited.amplifier.veryfy.%player%} to "false"
+				set {amplifier.set} to "true"
+				set {amplifier.guy} to "%player%"
+				set {amplifier.counter.%player%} to {amplifier.counter.%player%} parsed as a number - 1
+				wait 3 seconds
+				set {amplifier.set} to "False"
+				set {amplifier.guy} to "None"
+				send "&9Amplifier> &e%player%'s &7Amplifier Expired." to loop-player
+		else:
+			send "&rUnknown command. Type ""/help"" for help."
+	
+on death of Creeper or Skeleton or Spider or Zombie or Slime or Enderman or Blaze or Witch:
+	send "&9Amplifier> &7Recived &e20 Shards &7for killing a Mob during %{amplifier.guy}%'s Amplifier." to attacker
+	addShards(attacker, 20)
+	stop
+	
+On death of a player:
+	if {amplifier.set} is "true":
+		if attacker is a player:
+			send "&9Amplifier> &7Recived &e20 Shards &7for killing a Mob during %{amplifier.guy}%'s Amplifier." to attacker
+			addShards(attacker, 20)
+			stop
+	else:
+		stop
+			
+command /amplify [<string>] [<offline player>] [<text>]:
+	executable by: players
+	trigger:
+		if arg 1 is not set:
+			if arg 2 is not set:
+				if {amplifier.set} is "true":
+					send "&9Amplifier> &7You cannot set an amplifier right now."
+					stop
+				else:
+					if {amplifier.counter.%player%} parsed as a number > 0:
+						open chest with 6 rows named "&8Game Amplifiers" to player
+						wait 2 ticks
+						format slot 13 of player with sugar named "&a&lGame Amplifier" with lore " ||&fYou own &a%{amplifier.counter.%player%}% &fGame Amplifiers || ||&7Game Amplifiers allow you to ||&7increase the shards ||&7earned in that game for 1 hour. ||&7You will also get bonus rewards ||&7from players thanking you while ||&7your amplifier is active. || ||&fGet Amplifiers at &a%{mineplex.config.shoplink}%" to close then run [set {waited.amplifier.veryfy.%player%} to "true"]->[execute player command "/mp_broadcast_amplify"]
+						format slot 31 of player with emerald block named "&a&lAmplify Now" with lore "&7Click to activate" to close
+					else:
+						send "&9Amplifier> &7You don't own any amplifier. You can buy it from our website."
+		else:
+			if arg 1 is set:
+				if player has permission "mineplex.admin":
+					if arg 1 is "add" or "reset" or "remove" or "cancel":
+						if arg 1 is "add":
+							if arg 2 is set:
+								if arg 3 is set:
+									if player has permission "mineplex.admin":
+										set {amplifier.counter.%arg-2%} to arg 3
+										send "&9Amplifier> &7Gived %arg-3% amplifiers to &e%arg-2%&7."
+										send "%arg-2% has now {amplifier.counter.%arg-2%} amplifiers"
+									else:
+										send "&9Permissions> &7You do not have permission to do that."
+						if arg 1 is "reset" or "remove":
+							if arg 2 is set:
+								if player has permission "mineplex.leader":
+									set {amplifier.counter.%arg-2%} to 0
+									send "&9Amplifier> &7Reseted the amplifer number for player &e%arg-2%&7."
+								else:
+									send "&9Permissions> &7You do not have permission to do that."
+							else:
+								send "&9Amplifier> &7Listing Commands:"
+								send "&e/amplify &7Start an amplifier."
+								send "&4/amplify add <player> <amount>: &7Add Amplifiers for a player."
+								send "&4/amplify (reset/remove) <player>"
+								send "&4/amplify cancel <player>"
+						if arg 1 is "cancel":
+							if player has permission "mineplex.leader":
+								set {amplifier.set} to "false"
+								send "&9Amplifier> &7Stopped the current amplifier."
+							else:
+								send "&9Permissions> &7You do not have permission to do that."
+					else:
+						if player has permission "mineplex.admin":
+							send "&9Amplifier> &7Listing Commands:"
+							send "&e/amplify &7Start an Amplifier."
+							send "&4/amplify add <player> <amount>: &7Add Amplifiers for a player."
+							send "&4/amplify (reset/remove) <player>"
+							send "&4/amplify cancel <player>"
+				else:
+					send "&9Permissions> &7You do not have permission to do that."		
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+									
+							
+		
+		
+		
+		
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+					
+		
+			
